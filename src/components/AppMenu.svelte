@@ -1,11 +1,13 @@
 <script>
+	import AppMenuList from "./AppMenuList.svelte";
+
     export let appMenuWidth;
     export let visible;
 </script>
 
 {#if visible}
 <div class="app-menu" style:width={appMenuWidth}>
-    <div class="app-menu-list" >
+    <AppMenuList >
         <button class="aoo-menu-list-item">
             <svg
                 class="app-menu-icon"
@@ -263,8 +265,8 @@
             >
             <p>Search</p>
         </button>
-    </div>
-    <div class="app-menu-list bottom" style:width={appMenuWidth}>
+    </AppMenuList>
+    <AppMenuList class="bottom">
         <button class="aoo-menu-list-item">
             <svg
                 class="app-menu-icon"
@@ -301,7 +303,7 @@
             >
             <p>Settings</p>
         </button>
-    </div>
+    </AppMenuList>
 </div>
 {:else}
 <div></div>
@@ -320,17 +322,7 @@
 		overflow: hidden;
 	}
 
-	.bottom {
-		align-self: end;
-		margin-bottom: 20px;
-	}
-
-	.app-menu-list {
-		margin-top: 55px;
-		align-self: top;
-		height: fit-content;
-		color: #fff;
-	}
+	
 
 	.aoo-menu-list-item {
         color: #fff;
