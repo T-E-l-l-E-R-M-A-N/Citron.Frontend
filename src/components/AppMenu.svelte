@@ -1,5 +1,6 @@
 <script>
 	import AppMenuList from "./AppMenuList.svelte";
+	import AppMenuListItem from "./AppMenuListItem.svelte";
 
     export let appMenuWidth;
     export let visible;
@@ -8,7 +9,7 @@
 {#if visible}
 <div class="app-menu" style:width={appMenuWidth}>
     <AppMenuList >
-        <button class="aoo-menu-list-item">
+        <AppMenuListItem label="Chats">
             <svg
                 class="app-menu-icon"
                 id="svg28031"
@@ -196,9 +197,8 @@
                     ></g
                 ></svg
             >
-            <p>Chats</p>
-        </button>
-        <button class="aoo-menu-list-item">
+        </AppMenuListItem>
+        <AppMenuListItem label="People">
             <svg
                 class="app-menu-icon"
                 version="1.1"
@@ -248,9 +248,8 @@
                     ></g
                 ></svg
             >
-            <p>People</p>
-        </button>
-        <button class="aoo-menu-list-item">
+        </AppMenuListItem>
+        <AppMenuListItem label="Search">
             <svg
                 class="app-menu-icon"
                 id="Layer_1"
@@ -263,11 +262,10 @@
                     style="fill: rgb(255, 255, 255);"
                 ></path></svg
             >
-            <p>Search</p>
-        </button>
+        </AppMenuListItem>
     </AppMenuList>
     <AppMenuList class="bottom">
-        <button class="aoo-menu-list-item">
+        <AppMenuListItem label="Account">
             <svg
                 class="app-menu-icon"
                 id="Layer_2"
@@ -286,9 +284,8 @@
                     ></path></g
                 ></svg
             >
-            <p>Account</p>
-        </button>
-        <button class="aoo-menu-list-item">
+        </AppMenuListItem>
+        <AppMenuListItem label="Settings">
             <svg
                 class="app-menu-icon"
                 id="Layer_1"
@@ -301,8 +298,7 @@
                     style="fill: rgb(255, 255, 255);"
                 ></path></svg
             >
-            <p>Settings</p>
-        </button>
+        </AppMenuListItem>
     </AppMenuList>
 </div>
 {:else}
@@ -324,23 +320,7 @@
 
 	
 
-	.aoo-menu-list-item {
-        color: #fff;
-        background: transparent;
-        border: 0;
-		cursor: pointer;
-		height: 32px;
-		display: grid;
-        width: 100%;
-		grid-template-columns: auto 1fr;
-		align-content: center;
-		text-align: left;
-		padding-left: 14px;
-	}
-
-	.aoo-menu-list-item:hover {
-		background: orange;
-	}
+	
 
 	.app-menu-icon {
 		width: 20px;
@@ -348,8 +328,5 @@
         align-self: center;
 	}
 
-	.aoo-menu-list-item p {
-		align-self: center;
-		margin-left: 30px;
-	}
+	
 </style>
