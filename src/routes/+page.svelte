@@ -131,9 +131,7 @@
 </script>
 
 <div class="window" on:reset={resized}>
-	<div >
-		<AppMenu {appMenuWidth} visible={!isMobile}></AppMenu>
-	</div>
+	<AppMenu {appMenuWidth} visible={!isMobile}></AppMenu>
 	<div class="window-content">
 		<ToolBar visible={!appMenuIsVisible}>
 			<ToolBarItem label="" click={toggleMenu} visible={appMenuIsVisible}>
@@ -216,12 +214,10 @@
 			{/if}
 		</div>
 
-		{#if isAuthorized}
-			<MobileBar height={bottomAppMenuHeight} visible={isMobile && isAuthorized}
+		<MobileBar height={bottomAppMenuHeight} visible={isMobile && isAuthorized}
 					   expandingControl={toggleBottomDrawer}>
 				
-			</MobileBar>
-		{/if}
+		</MobileBar>
 	</div>
 </div>
 
