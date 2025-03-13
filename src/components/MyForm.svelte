@@ -41,11 +41,6 @@
         color: #fff
 	}
 
-    .form-title {
-        justify-self: center;
-        font-size: 24px;
-    }
-
     .form-input {
         display: flex;
         flex-direction: column;
