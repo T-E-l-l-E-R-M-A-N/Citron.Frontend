@@ -2,12 +2,12 @@
 	export let name;
 	export let login;
 	export let password;
-
+    export let visible;
 	export let isRegister = 1;
 </script>
 
 
-
+{#if visible}
 <div class="form">
 	{#if isRegister}
     <label class="form-input" >
@@ -27,6 +27,8 @@
         SUBMIT
     </button>
 </div>
+{/if}
+
 
 <style>
 	.form {

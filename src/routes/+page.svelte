@@ -11,14 +11,12 @@
 	let appMenuWidth = '70px';
 	let isMobile = false;
 
-	let usesElectron = isElectron();
-
 	let bottomAppMenuHeight = '90px';
 	let bottomAppMenuIsOpen = 0;
 
 	let formRegister;
 
-	let isAuthorized = 1;
+	let isAuthorized = 11;
 
 	function toggleMenu() {
 		
@@ -131,7 +129,7 @@
 </script>
 
 <div class="window" on:reset={resized}>
-	<AppMenu {appMenuWidth} visible={!isMobile}></AppMenu>
+	<AppMenu {appMenuWidth} visible={!isMobile} ></AppMenu>
 	<div class="window-content">
 		<ToolBar visible={!appMenuIsVisible}>
 			<ToolBarItem label="" click={toggleMenu} visible={appMenuIsVisible}>
@@ -207,11 +205,7 @@
 			</ToolBarItem>
 		</ToolBar>
 		<div class="window-content-main">
-			{#if !isAuthorized}
-				<MyForm id="form" bind:isRegister={formRegister} formTitle="FORM"></MyForm>
-			{:else}
-				<div></div>
-			{/if}
+			<MyForm id="form" bind:isRegister={formRegister} formTitle="FORM" visible={!isAuthorized}></MyForm>
 		</div>
 
 		<MobileBar height={bottomAppMenuHeight} visible={isMobile && isAuthorized}
@@ -219,6 +213,8 @@
 				
 		</MobileBar>
 	</div>
+
+	
 </div>
 
 <style>
