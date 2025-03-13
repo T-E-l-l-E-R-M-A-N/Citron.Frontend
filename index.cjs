@@ -16,6 +16,8 @@ function createWindow() {
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    minWidth: 420,
+    minHeight: 52,
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 8, y: 18 },
     titleBarOverlay: {

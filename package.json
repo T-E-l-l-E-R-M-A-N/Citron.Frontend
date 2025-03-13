@@ -12,9 +12,9 @@
     "lint": "prettier --check .",
     "package": "electron-forge package",
     "make": "electron-forge make",
-	"electron:dev": "cross-env IS_DEV=true electron-forge start",
-  	"electron:build": "electron-forge make",
-  	"electron:package": "electron-forge package"
+    "electron:dev": "cross-env IS_DEV=true electron-forge start",
+    "electron:build": "electron-forge make",
+    "electron:package": "electron-forge package"
   },
   "files": [
     "dist",
@@ -63,6 +63,7 @@
     "svelte"
   ],
   "dependencies": {
+    "@microsoft/signalr": "^8.0.7",
     "electron-squirrel-startup": "^1.0.1",
     "first": "^0.0.3",
     "ua-parser-js": "^2.0.2"

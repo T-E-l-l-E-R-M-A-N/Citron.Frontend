@@ -1,11 +1,17 @@
 <script>
     export let listItemSelected;
     export let label;
+	export let isSelected;
+	export let elementWidth;
 </script>
 
-<button class="aoo-menu-list-item" on:click={listItemSelected}>
-    <slot></slot>
-    <p>{label}</p>
+<button class="aoo-menu-list-item {isSelected ? 'selected' : ''}" on:click={listItemSelected}
+		style:width={elementWidth}>
+		<div class="aoo-menu-list-item-content">
+			<slot></slot>
+		</div>
+    	<p class="aoo-menu-list-item-label">{label}</p>
+	
 </button>
 
 <style>
@@ -14,21 +20,28 @@
         background: transparent;
         border: 0;
 		cursor: pointer;
-		height: 32px;
-		display: grid;
+		height: 42px;
         width: 100%;
-		grid-template-columns: auto 1fr;
+		display: flex;
 		align-content: center;
-		text-align: left;
-		padding-left: 14px;
 	}
 
 	.aoo-menu-list-item:hover {
 		background: orange;
 	}
 
-    .aoo-menu-list-item p {
+	.aoo-menu-list-item-content {
+		margin-top: 6px;
+		margin-left: 8px;
+	}
+
+    .aoo-menu-list-item .aoo-menu-list-item-label {
 		align-self: center;
-		margin-left: 30px;
+		text-align: left;
+		margin-left:30px;
+	}
+
+	.selected {
+		background: darkgoldenrod;
 	}
 </style>

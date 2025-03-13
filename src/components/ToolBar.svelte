@@ -1,6 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
-	export let visible;
+	export let paddingLeftIsVisible;
 	let isMacElectron;
 	onMount(() => {
 		let g = getOS();
@@ -24,7 +24,7 @@
 
 <div class="toolbar">
 	<div class="toolbar-items">
-		{#if isMacElectron && visible}
+		{#if isMacElectron && paddingLeftIsVisible}
 			<div class="macos-traffic-light-placeholder">BUTTONS</div>
 		{/if}
 		<slot></slot>
@@ -40,7 +40,7 @@
 	.toolbar {
 		height: 38px;
 		padding: 8px;
-		background: rgba(0, 0, 139, 0.794);
+		background: rgba(26, 69, 156, 0.794);
 		display: grid;
 		grid-template-columns: auto 1fr;
 		backdrop-filter: blur(8px);

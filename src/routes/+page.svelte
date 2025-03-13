@@ -1,10 +1,15 @@
 <script>
+	import { onMount } from 'svelte';
+	import { HubConnectionBuilder } from '@microsoft/signalr';
+
 	import AppMenu from '../components/AppMenu.svelte';
 	import MobileBar from '../components/MobileBar.svelte';
 	import MyForm from '../components/MyForm.svelte';
 	import ToolBar from '../components/ToolBar.svelte';
 	import ToolBarItem from '../components/ToolBarItem.svelte';
-	import { onMount } from 'svelte';
+	import ChatsPageView from '../pages/ChatsPageView.svelte';
+	import PeoplePageView from '../pages/PeoplePageView.svelte';
+	import SearchPageView from '../pages/SearchPageView.svelte';
 
 	let appMenuIsVisible = true;
 	let appMenuIsOpen = 0;
@@ -14,12 +19,13 @@
 	let bottomAppMenuHeight = '90px';
 	let bottomAppMenuIsOpen = 0;
 
-	let formRegister;
+	let formRegister = true;
 
-	let isAuthorized = 11;
+	let currentPage = 'Chats';
+	let accesskey = null;
+	let isAuthorized;
 
 	function toggleMenu() {
-		
 		const e = document.getElementsByClassName('cl');
 		appMenuIsOpen = !appMenuIsOpen;
 		if (appMenuIsOpen) {
@@ -39,12 +45,11 @@
 	}
 
 	function toggleBottomDrawer() {
-		
 		bottomAppMenuIsOpen = !bottomAppMenuIsOpen;
 		if (bottomAppMenuIsOpen) {
-			bottomAppMenuHeight = '40%';
+			bottomAppMenuHeight = '30%';
 		} else {
-			bottomAppMenuHeight = '90px';
+			bottomAppMenuHeight = '50px';
 		}
 	}
 
@@ -54,54 +59,27 @@
 		else document.title = 'Log In | Citron';
 	}
 
-	function isElectron() {
-		// Renderer process
-		if (
-			typeof window !== 'undefined' &&
-			typeof window.process === 'object' &&
-			window.process.type === 'renderer'
-		) {
-			return true;
-		}
-		// Main process
-		if (
-			typeof process !== 'undefined' &&
-			typeof process.versions === 'object' &&
-			!!process.versions.electron
-		) {
-			return true;
-		}
-		// Detect the user agent when the `nodeIntegration` option is set to true
-		if (
-			typeof navigator === 'object' &&
-			typeof navigator.userAgent === 'string' &&
-			navigator.userAgent.indexOf('Electron') >= 0
-		) {
-			return true;
-		}
-		return false;
-	}
-
 	onMount(() => {
-		if (window.innerWidth < 480) {
-			appMenuIsVisible = false;
-			isMobile = true;
-		}
-		else {
-			appMenuIsVisible = true;
-			isMobile = false;
-		}
+		accesskey = window.localStorage.getItem('access_key');
+		console.log(accesskey);
+		isAuthorized = accesskey != null;
 
+		if (!isMobile) {
+			if (window.innerWidth < 480) {
+				appMenuIsVisible = false;
+			} else {
+				appMenuIsVisible = true;
+			}
+		}
 		window.addEventListener(
 			'resize',
 			function (event) {
-				if (window.innerWidth < 480) {
-					appMenuIsVisible = false;
-					isMobile = true;
-				}
-				else {
-					appMenuIsVisible = true;
-					isMobile = false;
+				if (!isMobile) {
+					if (window.innerWidth < 480) {
+						appMenuIsVisible = false;
+					} else {
+						appMenuIsVisible = true;
+					}
 				}
 
 				console.log('the component has mounted');
@@ -110,29 +88,67 @@
 			true
 		);
 
-		/*
+	
+
 		const userAgent = window.navigator.userAgent;
 
-		if(userAgent.includes('Android') || userAgent.includes('iPhone OS')) {
+		if (userAgent.includes('Android') || userAgent.includes('iPhone OS')) {
 			console.log('mobile');
 			isMobile = true;
-		}
-		
-		else 
-		{
+		} else {
 			console.log(userAgent);
 			isMobile = false;
 		}
-		*/
 	});
+
+	function appMenuItemSelected(string) {
+		console.log(string);
+		currentPage = string;
+	}
 	//toggleMenu();
+
+	const hubConnection = new HubConnectionBuilder()
+		.withUrl('http://localhost:5000/index').build();
+
+	hubConnection
+		.start()
+		.then(function () {
+			console.log('connected');
+		})
+		.catch(function (err) {
+			return console.error(err.toString());
+		});
+
+	async function onAuthorize(array)
+	{
+		console.log(array);
+		if(array[0] != undefined) {
+			const a = await hubConnection.invoke("RegisterAsync", array[0], array[1], array[2]);
+			console.log(a);
+			window.localStorage.setItem('access_key', a);
+		}
+		else {
+			const a = await hubConnection.invoke("LoginAsync", array[1], array[2]);
+			console.log(a);
+			window.localStorage.setItem('access_key', a);
+		}
+		
+		accesskey = window.localStorage.getItem('access_key');
+		console.log(accesskey);
+		isAuthorized = accesskey != null;
+	}
 </script>
 
 <div class="window" on:reset={resized}>
-	<AppMenu {appMenuWidth} visible={!isMobile} ></AppMenu>
+	<AppMenu
+		{appMenuWidth}
+		visible={!isMobile & isAuthorized}
+		{appMenuItemSelected}
+		appMenuActiveItem={currentPage}
+	></AppMenu>
 	<div class="window-content">
-		<ToolBar visible={!appMenuIsVisible}>
-			<ToolBarItem label="" click={toggleMenu} visible={appMenuIsVisible}>
+		<ToolBar paddingLeftIsVisible={!isMobile && !isAuthorized}>
+			<ToolBarItem label="" click={toggleMenu} visible={isAuthorized && !isMobile}>
 				<svg
 					class="icon"
 					version="1.1"
@@ -203,18 +219,41 @@
 					></svg
 				>
 			</ToolBarItem>
+			<div class="page-title">
+				<style>
+					.page-title .toolbar-item {
+						pointer-events: none;
+						margin-left: -30px;
+					}
+				</style>
+				<ToolBarItem label={currentPage.toUpperCase()} visible={isAuthorized}></ToolBarItem>
+			</div>
+			<ToolBarItem label="SEARCH" visible={isAuthorized}>
+				<input />
+			</ToolBarItem>
 		</ToolBar>
 		<div class="window-content-main">
-			<MyForm id="form" bind:isRegister={formRegister} formTitle="FORM" visible={!isAuthorized}></MyForm>
+			{#if !isAuthorized}
+				<MyForm id="form" bind:isRegister={formRegister} 
+				formTitle="FORM" 
+				visible={!isAuthorized}
+				onSubmit={onAuthorize}
+				></MyForm>
+			{:else}
+				<ChatsPageView isActive={currentPage === 'Chats'}></ChatsPageView>
+				<PeoplePageView isActive={currentPage === 'People'}></PeoplePageView>
+				<SearchPageView isActive={currentPage === 'Search'}></SearchPageView>
+			{/if}
 		</div>
 
-		<MobileBar height={bottomAppMenuHeight} visible={isMobile && isAuthorized}
-					   expandingControl={toggleBottomDrawer}>
-				
-		</MobileBar>
+		<MobileBar
+			height={bottomAppMenuHeight}
+			visible={isMobile && isAuthorized}
+			expandingControl={toggleBottomDrawer}
+			appMenuActiveItem={currentPage}
+			{appMenuItemSelected}
+		></MobileBar>
 	</div>
-
-	
 </div>
 
 <style>
@@ -226,9 +265,13 @@
 	.window {
 		height: 100%;
 		margin: 0;
-		background: #fff;
+		background: #515151;
+		color: #fff;
 		display: grid;
+		font-family: 'SegoeWP';
 		grid-template-columns: auto 1fr;
+		overflow: hidden;
+		font-size: 10pt;
 	}
 
 	.window-content {
@@ -239,12 +282,17 @@
 	.window-content-main {
 		display: grid;
 		min-width: 310px;
-		margin-top: 170px;
-		overflow-y: hidden;
+		margin-top: 58px;
+		overflow-y: auto;
 	}
 
-	:global(.mobile-bar > .toolbar-item) {
-		width: 40px;
-		height: 40px;
+	@font-face {
+		font-family: 'SegoeWP'; /*a name to be used later*/
+		src: url('/segoe-wp.ttf'); /*URL to font*/
+	}
+
+	@font-face {
+		font-family: 'SegoeSymbol'; /*a name to be used later*/
+		src: url('/segoe-ui-symbol.ttf'); /*URL to font*/
 	}
 </style>
