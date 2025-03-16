@@ -12,18 +12,26 @@
 	import SearchPageView from '../pages/SearchPageView.svelte';
 
 	let appMenuIsVisible = true;
-	let appMenuIsOpen = 0;
+	let appMenuIsOpen = false;
 	let appMenuWidth = '70px';
 	let isMobile = false;
 
 	let bottomAppMenuHeight = '90px';
-	let bottomAppMenuIsOpen = 0;
+	let bottomAppMenuIsOpen = false;
 
 	let formRegister = true;
 
 	let currentPage = 'Chats';
 	let accesskey = null;
 	let isAuthorized;
+
+	let error = '';
+
+	let hubCoonection;
+
+	let peopleList = []
+	let chatRooms = []
+	
 
 	function toggleMenu() {
 		const e = document.getElementsByClassName('cl');
@@ -59,10 +67,15 @@
 		else document.title = 'Log In | Citron';
 	}
 
-	onMount(() => {
+	onMount(async () => {
+		hubCoonection = new HubConnectionBuilder()
+			.withUrl('https://soulfully-foolproof-monarch.cloudpub.ru/index')
+			.build();
+
 		accesskey = window.localStorage.getItem('access_key');
 		console.log(accesskey);
 		isAuthorized = accesskey != null;
+		
 
 		if (!isMobile) {
 			if (window.innerWidth < 480) {
@@ -88,8 +101,6 @@
 			true
 		);
 
-	
-
 		const userAgent = window.navigator.userAgent;
 
 		if (userAgent.includes('Android') || userAgent.includes('iPhone OS')) {
@@ -99,6 +110,16 @@
 			console.log(userAgent);
 			isMobile = false;
 		}
+
+		hubCoonection.on('OnMessageReceived', m => newMessageReceived(m))
+
+		hubCoonection.start().then(async () => {
+			if(isAuthorized)
+				await onAuthorized();
+		});
+
+		if(isAuthorized)
+			await onAuthorized();
 	});
 
 	function appMenuItemSelected(string) {
@@ -107,35 +128,49 @@
 	}
 	//toggleMenu();
 
-	const hubConnection = new HubConnectionBuilder()
-		.withUrl('http://localhost:5000/index').build();
-
-	hubConnection
-		.start()
-		.then(function () {
-			console.log('connected');
-		})
-		.catch(function (err) {
-			return console.error(err.toString());
-		});
-
-	async function onAuthorize(array)
-	{
+	async function onAuthFormSubmit(array) {
 		console.log(array);
-		if(array[0] != undefined) {
-			const a = await hubConnection.invoke("RegisterAsync", array[0], array[1], array[2]);
-			console.log(a);
-			window.localStorage.setItem('access_key', a);
+		const cred = {
+			name: formRegister ? array[0] : '',
+			login: array[1],
+			password: array[2]
+		};
+		console.log(cred);
+		if (cred.name === '') {
+			const result = await hubCoonection.invoke('LoginAsync', cred.login, cred.password);
+			console.log(result);
+			if (result == 'Invalid credentials') return;
+			window.localStorage.setItem('access_key', result);
+		} else {
+			const result = await hubCoonection.invoke(
+				'RegisterAsync',
+				cred.name,
+				cred.login,
+				cred.password
+			);
+			console.log(result);
+			if (result == 'Invalid credentials') return;
+			window.localStorage.setItem('access_key', result);
 		}
-		else {
-			const a = await hubConnection.invoke("LoginAsync", array[1], array[2]);
-			console.log(a);
-			window.localStorage.setItem('access_key', a);
-		}
-		
+
 		accesskey = window.localStorage.getItem('access_key');
 		console.log(accesskey);
 		isAuthorized = accesskey != null;
+		if(isAuthorized)
+			await onAuthorized();
+	}
+
+	async function onAuthorized() {
+		hubCoonection.invoke('ConnectAsync', hubCoonection.connectionId, accesskey);
+		
+		const result = await hubCoonection.invoke('GetUsers');
+		
+		peopleList = result;
+	}
+
+	function newMessageReceived(msg)
+	{
+		console.log(msg);
 	}
 </script>
 
@@ -228,21 +263,28 @@
 				</style>
 				<ToolBarItem label={currentPage.toUpperCase()} visible={isAuthorized}></ToolBarItem>
 			</div>
-			<ToolBarItem label="SEARCH" visible={isAuthorized}>
-				<input />
-			</ToolBarItem>
 		</ToolBar>
 		<div class="window-content-main">
 			{#if !isAuthorized}
-				<MyForm id="form" bind:isRegister={formRegister} 
-				formTitle="FORM" 
-				visible={!isAuthorized}
-				onSubmit={onAuthorize}
+				<MyForm
+					id="form"
+					bind:isRegister={formRegister}
+					formTitle="FORM"
+					visible={!isAuthorized}
+					onSubmit={onAuthFormSubmit}
 				></MyForm>
 			{:else}
 				<ChatsPageView isActive={currentPage === 'Chats'}></ChatsPageView>
-				<PeoplePageView isActive={currentPage === 'People'}></PeoplePageView>
+				<PeoplePageView isActive={currentPage === 'People'} 
+								items={peopleList}
+								hubCoonection={hubCoonection}
+								messageSended={newMessageReceived}></PeoplePageView>
 				<SearchPageView isActive={currentPage === 'Search'}></SearchPageView>
+			{/if}
+			{#if error !== ''}
+				<label style="color: #FFF; background: red; min-height: 90px; align-self: start"
+					>{error}</label
+				>
 			{/if}
 		</div>
 

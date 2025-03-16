@@ -3,12 +3,13 @@
     export let value;
     export let isPassword;
     export let visible;
+    export let style;
 </script>
 
 {#if visible}
-<label class="app-input" >
+<label class="app-input" style={style}>
     <text>{label}</text>
-    <input type="{ isPassword ? 'password' : 'text'}" bind:value={value}>
+    <textarea type="{ isPassword ? 'password' : 'text'}" bind:value={value}></textarea>
 </label>
 {/if}
 
@@ -19,7 +20,7 @@
         grid-template-columns: auto 1fr;
     }
 
-	.app-input input {
+	.app-input textarea {
         margin-left: 10px;
 		padding: 5px;
         outline: none;
@@ -31,10 +32,10 @@
         width: 70px;
         text-wrap: wrap;
         text-align: end;
-        align-self: center;
+        align-self: top;
     }
 
-    .app-input:hover input {
+    .app-input:hover textarea {
         background: orange;
     }
 

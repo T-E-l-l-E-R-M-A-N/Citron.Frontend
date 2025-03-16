@@ -4,6 +4,7 @@
   "scripts": {
     "start": "electron-forge start",
     "dev": "concurrently -k 'vite --host' 'npm run electron:dev'",
+    "devb": "vite --host",
     "build": "vite build && npm run prepack",
     "preview": "vite preview",
     "prepare": "svelte-kit sync || echo ''",
@@ -51,21 +52,23 @@
     "@sveltejs/vite-plugin-svelte": "^5.0.0",
     "concurrently": "^9.1.2",
     "cross-env": "^7.0.3",
-    "electron": "35.0.1",
+    "electron": "^35.0.1",
     "prettier": "^3.4.2",
     "prettier-plugin-svelte": "^3.3.3",
-    "publint": "^0.3.2",
-    "svelte": "^5.0.0",
+    "publint": "^0.3.9",
+    "svelte": "^5.23.0",
     "typescript": "^5.3.2",
-    "vite": "^6.0.0"
+    "vite": "^6.2.2"
   },
   "keywords": [
     "svelte"
   ],
   "dependencies": {
     "@microsoft/signalr": "^8.0.7",
+    "electron-forge": "^5.2.4",
     "electron-squirrel-startup": "^1.0.1",
     "first": "^0.0.3",
+    "jquery": "^3.7.1",
     "ua-parser-js": "^2.0.2"
   },
   "main": "index.cjs",
