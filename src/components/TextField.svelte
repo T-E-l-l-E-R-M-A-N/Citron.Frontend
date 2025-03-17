@@ -4,12 +4,16 @@
     export let isPassword;
     export let visible;
     export let style;
+    export let multiline = false;
 </script>
 
 {#if visible}
 <label class="app-input" style={style}>
     <text>{label}</text>
-    <textarea type="{ isPassword ? 'password' : 'text'}" bind:value={value}></textarea>
+    {#if multiline}
+        <textarea type="text" bind:value={value}></textarea>
+    {:else}
+        <input type={ isPassword ? 'password' : 'text'} bind:value={value}>
 </label>
 {/if}
 
@@ -20,7 +24,7 @@
         grid-template-columns: auto 1fr;
     }
 
-	.app-input textarea {
+	.app-input textarea, input {
         margin-left: 10px;
 		padding: 5px;
         outline: none;
@@ -35,7 +39,7 @@
         align-self: top;
     }
 
-    .app-input:hover textarea {
+    .app-input:hover textarea, input {
         background: orange;
     }
 

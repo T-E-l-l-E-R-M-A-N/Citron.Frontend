@@ -15,6 +15,8 @@
 
     let peoplePageMessageFormName;
 
+    let selectedUserId = -1;
+
     function onTrySendMessage(id)
 	{
 		peoplePageMessageFormSendTargetId = id;
@@ -42,22 +44,20 @@
         messageSended('e')
         closeForm();
     }
+
+    function userSelected(id) {
+        selectedUserId = id;
+    }
 </script>
 
 {#if isActive}
 	<div class="page">
         <div class="people-list">
             {#each items as item}
-                <div class="people-list-item">
-                    <div class="people-list-item-avatar">
-                        <i class="fa fa-user fa-3x"></i>
-                    </div>
-                    <p class="people-list-item-label">{item.name}</p>
-                    <button class="people-list-item-button" aria-label="send"
-                            on:click={() => onTrySendMessage(item.id)}>
-                        <i style="scale: 0.6;" class="fa fa-comment fa-3x"></i>
-                    </button>
-                </div>
+                <PeopleListItem hubConnection={hubCoonection}
+                                userId={item.id}
+                                isSelected={ selectedUserId !== -1 }
+                                onSelect={userSelected}></PeopleListItem>
             {/each}
         </div>
         
@@ -74,6 +74,7 @@
                     </button>
                 </div>
                 <TextField label={peoplePageMessageFormName}
+                           multiline=true
                            visible=true
                            style="height: 120px; margin-right: 0px"
                            bind:value={textMessage}></TextField>
@@ -93,45 +94,7 @@
 		display: grid;
 		justify-content: center;
 	}
-	.people-list-item {
-		width: 380px;
-		height: 50px;
-		background: transparent;
-		display: grid;
-		grid-template-columns: auto 1fr auto;
-		border-bottom: 1px solid gray;
-		color: #fff;
-	}
-
-	.people-list-item-label {
-		margin-left: 10px;
-		align-self: center;
-	}
-
-	.page-title {
-		font-size: 32pt;
-		font-family: 'SegoeSymbol';
-	}
-
-	.people-list-item-avatar {
-		width: 50px;
-		height: 50px;
-		display: grid;
-		align-content: center;
-		justify-content: center;
-		background: gray;
-		align-self: end;
-	}
-
-	.people-list-item-button {
-		background: transparent;
-		border: 0;
-		color: #fff;
-	}
-
-    .people-list-item-button:hover {
-        background: orange;
-    }
+	
 
     .messageSend-form {
         width: 380px;
