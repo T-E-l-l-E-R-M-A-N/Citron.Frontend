@@ -1,49 +1,49 @@
 <script>
-    export let label;
-    export let value;
-    export let isPassword;
-    export let visible;
-    export let style;
-    export let multiline = false;
+	export let label;
+	export let value;
+	export let isPassword;
+	export let visible;
+	export let style;
+	export let multiline = false;
 </script>
 
 {#if visible}
-<label class="app-input" style={style}>
-    <text>{label}</text>
-    {#if multiline}
-        <textarea type="text" bind:value={value}></textarea>
-    {:else}
-        <input type={ isPassword ? 'password' : 'text'} bind:value={value}>
-</label>
+	<div class="app-input" style={style}>
+		<text>{label}</text>
+		{#if multiline}
+			<textarea type="text" bind:value={value}></textarea>
+		{:else}
+			<input type={ isPassword ? 'password' : 'text'} bind:value={value}>
+		{/if}
+	</div>
 {/if}
 
 <style>
     .app-input {
-        display: grid;
+        display: flex;
         margin-top: 5px;
-        grid-template-columns: auto 1fr;
+        flex-direction: column;
     }
 
-	.app-input textarea, input {
-        margin-left: 10px;
-		padding: 5px;
+    .app-input textarea, input {
+        padding: 5px;
         outline: none;
         border: none;
         border-radius: 0;
-	}
+    }
 
     .app-input text {
-        width: 70px;
         text-wrap: wrap;
         text-align: end;
-        align-self: top;
+        align-self: start;
     }
 
     .app-input:hover textarea, input {
-        background: orange;
+        background: #d1d1d1;
+
     }
 
     input:focus {
-        background: #ffda96    
+        background: #ffda96
     }
 </style>

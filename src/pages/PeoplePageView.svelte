@@ -1,100 +1,110 @@
 <script>
-	import Button from "../components/Button.svelte";
-	import TextField from "../components/TextField.svelte";
+	import Button from '../components/Button.svelte';
+	import TextField from '../components/TextField.svelte';
+	import PeopleListItem from '../components/PeopleListItem.svelte';
 
 	export let isActive;
 	export let items;
-    export let hubCoonection;
-    export let messageSended;
+	export let hubCoonection;
+	export let messageSended;
+	export let userId;
 
-    let textMessage;
+	let textMessage;
 
-    let peoplePageMessageFormIsOpen = false;
+	let peoplePageMessageFormIsOpen = false;
 	let peoplePageMessageFormSendTargetId;
 	let peoplePageMessageFormText;
 
-    let peoplePageMessageFormName;
+	let peoplePageMessageFormName;
 
-    let selectedUserId = -1;
+	let selectedUserId = -1;
 
-    function onTrySendMessage(id)
-	{
+	async function onTrySendMessage(id) {
 		peoplePageMessageFormSendTargetId = id;
 		peoplePageMessageFormIsOpen = true;
-        getUserName(id);
+		getUserName(id);
+
+
 	}
 
-    async function getUserName(id)
-    {
-        const result = await hubCoonection.invoke('GetUserByIdAsync', id);
-        peoplePageMessageFormName = result.name;
-    }
+	async function getUserName(id) {
+		const result = await hubCoonection.invoke('GetUserByIdAsync', id);
+		peoplePageMessageFormName = result.name;
+	}
 
-    function closeForm()
-    {
-        peoplePageMessageFormSendTargetId = null;
-        peoplePageMessageFormText = '';
+	function closeForm() {
+		peoplePageMessageFormSendTargetId = null;
+		peoplePageMessageFormText = '';
 		peoplePageMessageFormIsOpen = false;
-        peoplePageMessageFormName = '';
-    }
+		peoplePageMessageFormName = '';
+	}
 
-    function onSendMesage()
-    {
-        console.log(textMessage);
-        messageSended('e')
-        closeForm();
-    }
+	async function onSendMesage() {
+		console.log(textMessage);
+		await hubCoonection.invoke('SendPrivateMessageAsync', userId, peoplePageMessageFormSendTargetId, textMessage);
+		messageSended('e');
+		closeForm();
 
-    function userSelected(id) {
-        selectedUserId = id;
-    }
+	}
+
+	function userSelected(id) {
+		selectedUserId = id;
+	}
 </script>
 
 {#if isActive}
 	<div class="page">
-        <div class="people-list">
-            {#each items as item}
-                <PeopleListItem hubConnection={hubCoonection}
-                                userId={item.id}
-                                isSelected={ selectedUserId !== -1 }
-                                onSelect={userSelected}></PeopleListItem>
-            {/each}
-        </div>
-        
-        {#if peoplePageMessageFormIsOpen}
-            <div class="messageSend-form">
-                <div class="messageSend-form-header">
-                    <div class="people-list-item-avatar">
-                        <i class="fa fa-user fa-3x"></i>
-                    </div>
-                    <p class="people-list-item-label">WRITE NEW MESSAGE</p>
-                    <button class="people-list-item-button" aria-label="send"
-                            on:click={closeForm}>
-                        <i style="scale: 0.4;" class="fa fa-chevron-down fa-3x"></i>
-                    </button>
-                </div>
-                <TextField label={peoplePageMessageFormName}
-                           multiline=true
-                           visible=true
-                           style="height: 120px; margin-right: 0px"
-                           bind:value={textMessage}></TextField>
-                <Button visible=true
-                        click={onSendMesage}>SEND</Button>
-            </div>
-        {/if}
-    </div>
+		<div class="people-list">
+			{#each items as item}
+				<PeopleListItem hubConnection={hubCoonection}
+												userId={item.id}
+												isSelected={ selectedUserId !== -1 }
+												onSelect={userSelected}
+												onMessageSendButtonClicked={onTrySendMessage}></PeopleListItem>
+			{/each}
+		</div>
+
+		{#if peoplePageMessageFormIsOpen}
+			<div class="messageSend-form">
+				<div class="messageSend-form-header">
+					<div class="people-list-item-avatar">
+						<i class="fa fa-user fa-3x"></i>
+					</div>
+					<p class="people-list-item-label">WRITE NEW MESSAGE</p>
+					<button class="people-list-item-button" aria-label="send"
+									on:click={closeForm}>
+						<i style="scale: 0.4;" class="fa fa-chevron-down fa-3x"></i>
+					</button>
+				</div>
+				<TextField label={peoplePageMessageFormName}
+									 multiline=true
+									 visible=true
+									 style="height: 120px; margin-right: 0px"
+									 bind:value={textMessage}></TextField>
+				<Button visible=true
+								click={onSendMesage}>SEND
+				</Button>
+			</div>
+		{/if}
+	</div>
 {/if}
 
 <style>
     .page {
         display: grid;
     }
-	.people-list {
-		padding: 10px;
-		display: grid;
-		justify-content: center;
-	}
-	
+
+    .people-list {
+        width: 90vw;
+        display: inline-flex;
+				flex-direction: column;
+				flex-wrap: wrap;
+        padding: 0 0 0 80px;
+				height: 70vh;
+				overflow-x: auto;
+
+    }
+
 
     .messageSend-form {
         width: 380px;

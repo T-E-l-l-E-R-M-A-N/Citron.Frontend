@@ -31,6 +31,8 @@
 
 	let peopleList = []
 	let chatRooms = []
+
+	let userId = -1;
 	
 
 	function toggleMenu() {
@@ -69,7 +71,7 @@
 
 	onMount(async () => {
 		hubCoonection = new HubConnectionBuilder()
-			.withUrl('https://soulfully-foolproof-monarch.cloudpub.ru/index')
+			.withUrl('https://tolerably-agile-iguana.cloudpub.ru/index')
 			.build();
 
 		accesskey = window.localStorage.getItem('access_key');
@@ -122,9 +124,25 @@
 			await onAuthorized();
 	});
 
-	function appMenuItemSelected(string) {
+	async function appMenuItemSelected(string) {
 		console.log(string);
 		currentPage = string;
+
+
+		if(currentPage === 'People') {
+			const result = await hubCoonection.invoke('GetUsersAsync');
+
+			peopleList = result;
+		}
+		else if(currentPage === 'Chats')
+		{
+			console.log(userId);
+			const result2 = await hubCoonection.invoke('GetRoomsAsync', userId);
+			console.log(result2);
+			chatRooms = result2;
+		}
+
+
 	}
 	//toggleMenu();
 
@@ -161,132 +179,60 @@
 	}
 
 	async function onAuthorized() {
-		hubCoonection.invoke('ConnectAsync', hubCoonection.connectionId, accesskey);
-		
-		const result = await hubCoonection.invoke('GetUsers');
-		
-		peopleList = result;
+		let d = await hubCoonection.invoke('ConnectAsync', hubCoonection.connectionId, accesskey);
+		userId =d;
+		if(userId === -1)
+			isAuthorized = false;
+		else await appMenuItemSelected('Chats');
 	}
 
 	function newMessageReceived(msg)
 	{
 		console.log(msg);
+		//appMenuItemSelected('Chats');
 	}
 </script>
 
-<div class="window" on:reset={resized}>
-	<AppMenu
-		{appMenuWidth}
-		visible={!isMobile & isAuthorized}
-		{appMenuItemSelected}
-		appMenuActiveItem={currentPage}
-	></AppMenu>
+<div class="window" >
+
 	<div class="window-content">
 		<ToolBar paddingLeftIsVisible={!isMobile && !isAuthorized}>
 			<ToolBarItem label="" click={toggleMenu} visible={isAuthorized && !isMobile}>
-				<svg
-					class="icon"
-					version="1.1"
-					id="Capa_1"
-					xmlns="http://www.w3.org/2000/svg"
-					xmlns:xlink="http://www.w3.org/1999/xlink"
-					x="0px"
-					y="0px"
-					viewBox="0 0 384 384"
-					style="enable-background:new 0 0 384 384;"
-					xml:space="preserve"
-					><g
-						><g
-							><g
-								><rect x="0" y="277.333" width="384" height="42.667" /><rect
-									x="0"
-									y="170.667"
-									width="384"
-									height="42.667"
-								/><rect x="0" y="64" width="384" height="42.667" /></g
-							></g
-						></g
-					></svg
-				>
+				<p style="font-family: SegoeSymbol; font-size: 28px;"></p>
 			</ToolBarItem>
-			<ToolBarItem
-				click={toggleRegisterForm}
-				label={formRegister ? 'Log in' : 'Create account'}
-				visible={!isAuthorized}
-			>
-				<svg
-					version="1.1"
-					id="Layer_1"
-					class="icon"
-					xmlns="http://www.w3.org/2000/svg"
-					xmlns:xlink="http://www.w3.org/1999/xlink"
-					x="0px"
-					y="0px"
-					viewBox="0 0 512 512"
-					style="enable-background:new 0 0 512 512; width: 22px"
-					xml:space="preserve"
-					><g
-						><g
-							><circle
-								cx="212.293"
-								cy="106.146"
-								r="106.146"
-								fill="#000000"
-								style="fill: rgb(255, 255, 255);"
-							></circle></g
-						></g
-					><g
-						><g
-							><path
-								d="M399.61,337.171c-48.277,0-87.415,39.137-87.415,87.415c0,48.278,39.138,87.415,87.415,87.415 c48.275,0,87.415-39.137,87.415-87.415C487.024,376.307,447.885,337.171,399.61,337.171z M449.561,443.317h-31.219v31.219h-37.463 v-31.219h-31.22v-37.463h31.22v-31.219h37.463v31.219h31.219V443.317z"
-								fill="#000000"
-								style="fill: rgb(255, 255, 255);"
-							></path></g
-						></g
-					><g
-						><g
-							><path
-								d="M372.595,302.659c-32.832-54.167-92.336-90.367-160.302-90.367c-103.451,0-187.317,83.866-187.317,187.317 c0,27.587,22.366,49.951,49.951,49.951h202.316c-1.646-8.072-2.511-16.424-2.511-24.976 C274.732,365.001,316.681,315.039,372.595,302.659z"
-								fill="#000000"
-								style="fill: rgb(255, 255, 255);"
-							></path></g
-						></g
-					></svg
-				>
-			</ToolBarItem>
-			<div class="page-title">
-				<style>
-					.page-title .toolbar-item {
-						pointer-events: none;
-						margin-left: -30px;
-					}
-				</style>
-				<ToolBarItem label={currentPage.toUpperCase()} visible={isAuthorized}></ToolBarItem>
-			</div>
+			<AppMenu
+				visible={!isMobile & isAuthorized}
+				{appMenuItemSelected}
+				appMenuActiveItem={currentPage}
+
+			></AppMenu>
 		</ToolBar>
-		<div class="window-content-main">
-			{#if !isAuthorized}
-				<MyForm
-					id="form"
-					bind:isRegister={formRegister}
-					formTitle="FORM"
-					visible={!isAuthorized}
-					onSubmit={onAuthFormSubmit}
-				></MyForm>
-			{:else}
-				<ChatsPageView isActive={currentPage === 'Chats'}></ChatsPageView>
-				<PeoplePageView isActive={currentPage === 'People'} 
-								items={peopleList}
-								hubCoonection={hubCoonection}
-								messageSended={newMessageReceived}></PeoplePageView>
-				<SearchPageView isActive={currentPage === 'Search'}></SearchPageView>
-			{/if}
-			{#if error !== ''}
-				<label style="color: #FFF; background: red; min-height: 90px; align-self: start"
-					>{error}</label
-				>
-			{/if}
-		</div>
+		{#if !isAuthorized}
+			<MyForm
+				id="form"
+				bind:isRegister={formRegister}
+				visible=true
+				formTitle="FORM"
+				onSubmit={onAuthFormSubmit}
+			></MyForm>
+		{:else}
+			<div style="height: 120px"></div>
+			<ChatsPageView isActive={currentPage === 'Chats'}
+										 hubCoonection={hubCoonection}
+										 rooms={chatRooms}></ChatsPageView>
+			<PeoplePageView isActive={currentPage === 'People'}
+											items={peopleList}
+											hubCoonection={hubCoonection}
+											messageSended={newMessageReceived}
+											userId={userId}></PeoplePageView>
+			<SearchPageView isActive={currentPage === 'Search'}
+											hubCoonection={hubCoonection}></SearchPageView>
+		{/if}
+		{#if error !== ''}
+			<label style="color: #FFF; background: red; min-height: 90px; align-self: start"
+			>{error}</label
+			>
+		{/if}
 
 		<MobileBar
 			height={bottomAppMenuHeight}
@@ -307,11 +253,10 @@
 	.window {
 		height: 100%;
 		margin: 0;
-		background: #515151;
-		color: #fff;
+		background: #fff;
+		color: #000;
 		display: grid;
-		font-family: 'SegoeWP';
-		grid-template-columns: auto 1fr;
+		font-family: 'SegoeWP',serif;
 		overflow: hidden;
 		font-size: 10pt;
 	}
@@ -319,22 +264,16 @@
 	.window-content {
 		display: grid;
 		grid-template-rows: auto 1fr;
-	}
-
-	.window-content-main {
-		display: grid;
-		min-width: 310px;
-		margin-top: 58px;
-		overflow-y: auto;
+			height: 100%;
 	}
 
 	@font-face {
 		font-family: 'SegoeWP'; /*a name to be used later*/
-		src: url('/segoe-wp.ttf'); /*URL to font*/
+		src: url('/segoe-wp-light.ttf'); /*URL to font*/
 	}
 
 	@font-face {
 		font-family: 'SegoeSymbol'; /*a name to be used later*/
-		src: url('/segoe-ui-symbol.ttf'); /*URL to font*/
+		src: url('/seguisym.ttf'); /*URL to font*/
 	}
 </style>

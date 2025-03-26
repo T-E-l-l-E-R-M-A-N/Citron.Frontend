@@ -1,17 +1,17 @@
 <script>
 	import { onMount } from 'svelte';
+
 	export let paddingLeftIsVisible;
 	let isMacElectron;
 	onMount(() => {
 		let g = getOS();
 		console.log(g);
 
-		if(g.includes("Electron") && g.includes("Macintosh"))
-		{
+		if (g.includes('Electron') && g.includes('Macintosh')) {
 			isMacElectron = true;
 
-			var el = document.getElementsByClassName("draggable")[0];
-			el.style.appRegion = "drag";
+			var el = document.getElementsByClassName('draggable')[0];
+			el.style.appRegion = 'drag';
 		}
 
 
@@ -33,29 +33,30 @@
 </div>
 
 <style>
-	.draggable {
-		background: transparent;
-		
-	}
-	.toolbar {
-		height: 38px;
-		padding: 8px;
-		background: rgba(26, 69, 156, 0.794);
-		display: grid;
-		grid-template-columns: auto 1fr;
-		backdrop-filter: blur(8px);
-		position: fixed;
-		width: 100%;
-		z-index: 1;
-	}
+    .draggable {
+        background: transparent;
 
-	.toolbar-items {
-		display: flex;
-	}
+    }
 
-	.macos-traffic-light-placeholder {
-		background: transparent;
-		opacity: 0;
-		min-width: 70px;
-	}
+    .toolbar {
+        height: 120px;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        backdrop-filter: blur(8px);
+        position: fixed;
+        width: 100%;
+				padding-left: 20px;
+        z-index: 1;
+    }
+
+    .toolbar-items {
+        display: flex;
+        align-items: end;
+    }
+
+    .macos-traffic-light-placeholder {
+        background: transparent;
+        opacity: 0;
+        min-width: 70px;
+    }
 </style>
