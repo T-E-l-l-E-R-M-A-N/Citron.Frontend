@@ -13,34 +13,29 @@
 	export let lastMessageUserName;
 
 	onMount(async () => {
-		console.log(room.id)
+		console.log(room.room.id)
 
-		const result = await hubConnection.invoke('GetMessages', room.id);
+		const result = await hubConnection.invoke('GetMessages', room.room.id);
 		messages = result;
-		let lm =  messages.at(-1);
-		let user = await hubConnection.invoke('GetUserByIdAsync', lm.userId);
+		let lm = room.lastMessage;
 		lastMessageText = lm.text;
-
-		lastMessageUserName = user.name;
+		lastMessageUserName = lm.user.screenName;
+		lastMessageDate = lm.time;
 	})
 </script>
 
-<div class="rooms-list-item {isSelected ? 'selected' : ''}" on:click={() => onSelect(room.id)}>
+<div class="rooms-list-item {isSelected ? 'selected' : ''}" on:click={() => onSelect(room.room.id)}>
 
-	<text class="rooms-list-item-label">{room.name}</text>
-	<div class="rooms-list-item-info">
-		<text class="rooms-list-item-info-label-1">{lastMessageUserName}</text>
-		<text class="rooms-list-item-info-label-2">{lastMessageText}</text>
-		<text class="rooms-list-item-info-label-3">{lastMessageDate}</text>
-	</div>
+	<text class="rooms-list-item-label">{room.room.name}</text>
 </div>
 
 <style>
     .rooms-list-item {
-        width: 380px;
+        width: 100%;
         background: transparent;
         display: flex;
         flex-direction: column;
+				height: 30px;
     }
 
     .selected {
@@ -74,6 +69,10 @@
 				color: orange;
 		}
 
+		.selected .rooms-list-item-info-label-1 {
+				color: #4c422e;
+		}
+
     .rooms-list-item:hover .rooms-list-item-info-label-1 {
         color: #fff;
     }
@@ -82,4 +81,6 @@
 				text-align: left;
 				margin-left: 10px;
 		}
+
+
 </style>

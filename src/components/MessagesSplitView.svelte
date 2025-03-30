@@ -4,24 +4,49 @@
 	import Button from './Button.svelte';
 	import { onMount } from 'svelte';
 
-	export let chatRooms = [];
+	export let chatRooms;
 	export let selectedRoomId;
 	export let hubConnection;
 
 	let room;
-	let messages = [];
+	let messages;
 	let text;
+	export let userId;
+	let targetUserId;
 
+	$: selectRoom(selectedRoomId);
 
-	function selectRoom(id) {
+	async function selectRoom(id) {
 		selectedRoomId = id;
-		getRoomInfo();
-		getMessages();
+		await getRoomInfo()
+		hubConnection.on('OnMessageReceived',
+			async (e) => {
+				if(e.room.id === selectedRoomId)
+				{
+					const result = await hubConnection.invoke('GetRoomAsync', selectedRoomId);
+					room = result;
+					messages = room.messages;
+				}
+			});
+
 	}
 
 	async function getRoomInfo() {
-
+		const result = await hubConnection.invoke('GetRoomAsync', selectedRoomId);
+		room = result;
+		messages = room.messages;
+		console.log(room);
+		if(room.users.length === 2) {
+			room.users.map((e)=>{
+				if(e.id !== userId)
+				{
+					targetUserId = e.id;
+					console.log('Target id: ', targetUserId);
+				}
+			});
+		}
 	}
+
 
 	async function getMessages() {
 		const result = await hubConnection.invoke('GetMessages', selectedRoomId);
@@ -30,7 +55,7 @@
 	}
 
 	async function sendMessage() {
-
+		await hubConnection.invoke('SendPrivateMessageAsync', userId, targetUserId, text);
 	}
 </script>
 
@@ -39,26 +64,46 @@
 		{#each chatRooms as roomItem}
 			<RoomsListItem room={roomItem}
 										 hubConnection={hubConnection}
-										 isSelected={selectedRoomId !== -1}
-										 onSelect={selectRoom}></RoomsListItem>
+										 isSelected={selectedRoomId === roomItem.room.id}
+										 onSelect={() => selectRoom(roomItem.room.id)}></RoomsListItem>
 		{/each}
 	</div>
-	{#if selectedRoomId !== -1}
+	{#if selectedRoomId !== 0}
 		<div class="h-splitview-room-view">
-			<div class="messages-view">
-				{#each messages as message}
-					<div class="message-item">
-						<text>{message.user.name}</text>
-						<text>{message.text}</text>
-					</div>
-				{/each}
+			<div class="messages-view" >
+				<div style="transform: scaleY(-1);" >
+					{#each messages as message}
+
+						{#if message.user.id !== userId}
+							<div class="message-item" style="justify-self: start">
+								<text style="color: purple; text-align: start; margin-left: 10px">{message.user.screenName}</text>
+								<div style="background: purple; padding: 8px; display: flex; flex-direction: column">
+
+									<text>{message.text}</text>
+									<text style="text-align: end">{message.time}</text>
+								</div>
+							</div>
+						{:else }
+							<div class="message-item" style="justify-self: end">
+								<text style="color: purple; text-align: end; margin-right: 10px">{message.user.screenName}</text>
+								<div style="background: purple; padding: 8px; display: flex; flex-direction: column">
+
+									<text>{message.text}</text>
+									<text style="text-align: end">{message.time}</text>
+								</div>
+							</div>
+						{/if}
+					{/each}
+				</div>
 			</div>
-			<div class="messages-view-send-message-form">
-				<TextField label="MESSAGE"
-									 visible=true
-									 bind:value={text}></TextField>
-				<Button click={sendMessage}>SEND</Button>
-			</div>
+			{#if room !== undefined}
+				<div class="messages-view-send-message-form">
+					<TextField label="MESSAGE"
+										 visible=true
+										 bind:value={text}></TextField>
+					<Button click={sendMessage}>SEND</Button>
+				</div>
+			{/if}
 		</div>
 	{/if}
 </div>
@@ -72,17 +117,18 @@
 
 	.h-splitview-rooms-list {
 			background: #00000010;
+			width: 300px;
 	}
 
 	.h-splitview-room-view {
-			display: grid;
-			grid-template-rows: 1fr auto;
+
 	}
 
 	.message-item {
-			background: purple;
-			margin-left: 24%;
-			margin-right: 24%;
+			margin-top: 10px;
+			justify-self: center;
+			min-width: 210px;
+
 			color: #fff;
 			display: flex;
 			flex-direction: column;
@@ -94,6 +140,13 @@
 			bottom: 0;
 			display: flex;
 			flex-direction: column;
+	}
+
+	.messages-view {
+			display: grid;
+			height: 70vh;
+			overflow-y: auto;
+			transform: scaleY(-1);
 	}
 
 </style>

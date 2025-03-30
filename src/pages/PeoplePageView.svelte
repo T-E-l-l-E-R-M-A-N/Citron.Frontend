@@ -5,7 +5,7 @@
 
 	export let isActive;
 	export let items;
-	export let hubCoonection;
+	export let hubConnection;
 	export let messageSended;
 	export let userId;
 
@@ -28,7 +28,7 @@
 	}
 
 	async function getUserName(id) {
-		const result = await hubCoonection.invoke('GetUserByIdAsync', id);
+		const result = await hubConnection.invoke('GetUserByIdAsync', id);
 		peoplePageMessageFormName = result.name;
 	}
 
@@ -41,7 +41,7 @@
 
 	async function onSendMesage() {
 		console.log(textMessage);
-		await hubCoonection.invoke('SendPrivateMessageAsync', userId, peoplePageMessageFormSendTargetId, textMessage);
+		await hubConnection.invoke('SendPrivateMessageAsync', userId, peoplePageMessageFormSendTargetId, textMessage);
 		messageSended('e');
 		closeForm();
 
@@ -56,7 +56,7 @@
 	<div class="page">
 		<div class="people-list">
 			{#each items as item}
-				<PeopleListItem hubConnection={hubCoonection}
+				<PeopleListItem hubConnection={hubConnection}
 												userId={item.id}
 												isSelected={ selectedUserId !== -1 }
 												onSelect={userSelected}

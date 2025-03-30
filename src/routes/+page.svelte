@@ -10,6 +10,7 @@
 	import ChatsPageView from '../pages/ChatsPageView.svelte';
 	import PeoplePageView from '../pages/PeoplePageView.svelte';
 	import SearchPageView from '../pages/SearchPageView.svelte';
+	import * as timers from 'node:timers';
 
 	let appMenuIsVisible = true;
 	let appMenuIsOpen = false;
@@ -27,13 +28,17 @@
 
 	let error = '';
 
-	let hubCoonection;
+	let hubConnection;
 
-	let peopleList = []
-	let chatRooms = []
+	let peopleList = [];
+	let chatRooms;
 
 	let userId = -1;
-	
+
+	let notificationIsShow =0;
+	let notificationTitle = 'notification title';
+	let notificationContent = 'notification text';
+
 
 	function toggleMenu() {
 		const e = document.getElementsByClassName('cl');
@@ -70,14 +75,14 @@
 	}
 
 	onMount(async () => {
-		hubCoonection = new HubConnectionBuilder()
+		hubConnection = new HubConnectionBuilder()
 			.withUrl('https://localhost:5001/index')
 			.build();
 
 		accesskey = window.localStorage.getItem('access_key');
 		console.log(accesskey);
 		isAuthorized = accesskey != null;
-		
+
 
 		if (!isMobile) {
 			if (window.innerWidth < 480) {
@@ -88,7 +93,7 @@
 		}
 		window.addEventListener(
 			'resize',
-			function (event) {
+			function(event) {
 				if (!isMobile) {
 					if (window.innerWidth < 480) {
 						appMenuIsVisible = false;
@@ -113,14 +118,14 @@
 			isMobile = false;
 		}
 
-		hubCoonection.on('OnMessageReceived', newMessageReceived)
+		hubConnection.on('OnMessageReceived', newMessageReceived);
 
-		hubCoonection.start().then(async () => {
-			if(isAuthorized)
+		hubConnection.start().then(async () => {
+			if (isAuthorized)
 				await onAuthorized();
 		});
 
-		if(isAuthorized)
+		if (isAuthorized)
 			await onAuthorized();
 	});
 
@@ -129,21 +134,20 @@
 		currentPage = string;
 
 
-		if(currentPage === 'People') {
-			const result = await hubCoonection.invoke('GetUsersAsync');
+		if (currentPage === 'People') {
+			const result = await hubConnection.invoke('GetUsersAsync');
 
 			peopleList = result;
-		}
-		else if(currentPage === 'Chats')
-		{
+		} else if (currentPage === 'Chats') {
 			console.log(userId);
-			const result2 = await hubCoonection.invoke('GetRoomsAsync', userId);
+			const result2 = await hubConnection.invoke('GetRoomsAsync', userId);
 			console.log(result2);
 			chatRooms = result2;
 		}
 
 
 	}
+
 	//toggleMenu();
 
 	async function onAuthFormSubmit(array) {
@@ -155,12 +159,12 @@
 		};
 		console.log(cred);
 		if (cred.name === '') {
-			const result = await hubCoonection.invoke('LoginAsync', cred.login, cred.password);
+			const result = await hubConnection.invoke('LoginAsync', cred.login, cred.password);
 			console.log(result);
 			if (result == 'Invalid credentials') return;
 			window.localStorage.setItem('access_key', result);
 		} else {
-			const result = await hubCoonection.invoke(
+			const result = await hubConnection.invoke(
 				'RegisterAsync',
 				cred.name,
 				cred.login,
@@ -174,28 +178,46 @@
 		accesskey = window.localStorage.getItem('access_key');
 		console.log(accesskey);
 		isAuthorized = accesskey != null;
-		if(isAuthorized)
+		if (isAuthorized)
 			await onAuthorized();
 	}
 
 	async function onAuthorized() {
-		let d = await hubCoonection.invoke('ConnectAsync', hubCoonection.connectionId, accesskey);
-		userId =d;
-		if(userId === -1)
+		let d = await hubConnection.invoke('ConnectAsync', hubConnection.connectionId, accesskey);
+		userId = d;
+		if (userId === -1)
 			isAuthorized = false;
-		else await appMenuItemSelected('Chats');
+		else
+		{
+			await appMenuItemSelected('Chats');
+		}
 	}
 
 	let selectedRoomId;
-	function newMessageReceived(msg)
-	{
+	let notificationTimer = '';
+
+	async function newMessageReceived(msg) {
 		console.log(msg);
-		appMenuItemSelected('Chats');
-		selectedRoomId = msg.roomId;
+		let user = await hubConnection.invoke('GetUserByIdAsync', msg.userId);
+		console.log(user);
+		if(msg.userId !== userId)
+		{
+			notificationTitle = 'Message from: ' + user.screenName;
+			notificationContent = msg.text;
+			notificationIsShow = true;
+			let second = 9;
+			const timer = setTimeout(() => {
+				notificationIsShow = false
+				clearTimeout(timer);
+				clearInterval(notification);
+			}, 10000);
+			const notification = setInterval(() => notificationTimer = `Close within: ${second--}`, 1000);
+
+		}
 	}
 </script>
 
-<div class="window" >
+<div class="window">
 
 	<div class="window-content">
 		<ToolBar paddingLeftIsVisible={!isMobile && !isAuthorized}>
@@ -220,16 +242,17 @@
 		{:else}
 			<div style="height: 120px"></div>
 			<ChatsPageView isActive={currentPage === 'Chats'}
-										 hubCoonection={hubCoonection}
+										 hubConnection={hubConnection}
 										 rooms={chatRooms}
-										 roomId={selectedRoomId}></ChatsPageView>
+										 roomId={selectedRoomId}
+			userId={userId}></ChatsPageView>
 			<PeoplePageView isActive={currentPage === 'People'}
 											items={peopleList}
-											hubCoonection={hubCoonection}
+											hubConnection={hubConnection}
 											messageSended={newMessageReceived}
 											userId={userId}></PeoplePageView>
 			<SearchPageView isActive={currentPage === 'Search'}
-											hubCoonection={hubCoonection}></SearchPageView>
+											hubConnection={hubConnection}></SearchPageView>
 		{/if}
 		{#if error !== ''}
 			<label style="color: #FFF; background: red; min-height: 90px; align-self: start"
@@ -244,39 +267,95 @@
 			appMenuActiveItem={currentPage}
 			{appMenuItemSelected}
 		></MobileBar>
+		{#if notificationIsShow}
+			<div class="notification-view">
+				<button class="notification-view-button" on:click={() => notificationIsShow = false}>
+					<i class="fa fa-close fa-1x" style="color: #fff"></i>
+				</button>
+				<text class="notification-view-title">{notificationTitle}</text>
+				<text class="notification-view-text">{notificationContent}</text>
+				<text class="notification-view-timer">{notificationTimer}</text>
+			</div>
+		{/if}
 	</div>
 </div>
 
 <style>
-	* {
-		margin: 0;
-		padding: 0;
-	}
+    * {
+        margin: 0;
+        padding: 0;
+    }
 
-	.window {
-		height: 100%;
-		margin: 0;
-		background: #fff;
-		color: #000;
-		display: grid;
-		font-family: 'SegoeWP',serif;
-		overflow: hidden;
-		font-size: 10pt;
-	}
+    .notification-view {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        right: 20px;
+        bottom: 10px;
+        height: 120px;
+        width: 320px;
+				color: #fff;
+				font-family: 'SegoeWP';
+        background: #493314;
+    }
 
-	.window-content {
-		display: grid;
-		grid-template-rows: auto 1fr;
-			height: 100%;
-	}
+    .notification-view-button {
+        background: transparent;
+        border: 0;
+        width: 32px;
+        height: 32px;
+        position: fixed;
+        right: 20px;
+    }
 
-	@font-face {
-		font-family: 'SegoeWP'; /*a name to be used later*/
-		src: url('/segoe-wp-light.ttf'); /*URL to font*/
-	}
+    .notification-view-button:hover {
+        background: orange;
+    }
 
-	@font-face {
-		font-family: 'SegoeSymbol'; /*a name to be used later*/
-		src: url('/seguisym.ttf'); /*URL to font*/
-	}
+		.notification-view-title {
+				margin-top: 20px;
+				font-size: 14pt;
+				margin-left: 20px;
+				margin-right: 20px;
+
+		}
+
+		.notification-view-text {
+				margin-left: 20px;
+				margin-right: 20px;
+		}
+
+		.notification-view-timer {
+				position: fixed;
+				right: 32px;
+				bottom: 20px;
+
+		}
+
+    .window {
+        height: 100%;
+        margin: 0;
+        background: #fff;
+        color: #000;
+        display: grid;
+        font-family: 'SegoeWP', serif;
+        overflow: hidden;
+        font-size: 10pt;
+    }
+
+    .window-content {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        height: 100%;
+    }
+
+    @font-face {
+        font-family: 'SegoeWP'; /*a name to be used later*/
+        src: url('/segoe-wp-light.ttf'); /*URL to font*/
+    }
+
+    @font-face {
+        font-family: 'SegoeSymbol'; /*a name to be used later*/
+        src: url('/seguisym.ttf'); /*URL to font*/
+    }
 </style>

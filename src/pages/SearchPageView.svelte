@@ -3,7 +3,7 @@
     import Button from '../components/Button.svelte';
 
     export let isActive;
-    export let hubCoonection;
+    export let hubConnection;
 
     let query;
     let mode = 'people';
@@ -20,13 +20,13 @@
         let result;
         if(mode === 'people')
         {
-            result = await hubCoonection.invoke('SearchUsers', query);
+            result = await hubConnection.invoke('SearchUsers', query);
             items = result;
             console.log(items);
         }
         else if(mode === 'messages')
         {
-            console.log(`hubCoonection.invoke('SearchMessages', ${query})`);
+            console.log(`hubConnection.invoke('SearchMessages', ${query})`);
         }
     }
 
@@ -38,7 +38,7 @@
             let result;
             if(mode === 'people')
             {
-                result = await hubCoonection.invoke('SearchUsers', query);
+                result = await hubConnection.invoke('SearchUsers', query);
                 items = result;
                 console.log(items)
             }
@@ -78,7 +78,7 @@
         <div class="results-list">
             {#each items as item}
                 <div class="results-item">
-                    {item.name}
+                    {item.screenName}
                 </div>
             {/each}
         </div>
