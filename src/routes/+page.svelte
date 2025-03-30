@@ -71,7 +71,7 @@
 
 	onMount(async () => {
 		hubCoonection = new HubConnectionBuilder()
-			.withUrl('https://tolerably-agile-iguana.cloudpub.ru/index')
+			.withUrl('https://localhost:5001/index')
 			.build();
 
 		accesskey = window.localStorage.getItem('access_key');
@@ -113,7 +113,7 @@
 			isMobile = false;
 		}
 
-		hubCoonection.on('OnMessageReceived', m => newMessageReceived(m))
+		hubCoonection.on('OnMessageReceived', newMessageReceived)
 
 		hubCoonection.start().then(async () => {
 			if(isAuthorized)
@@ -186,10 +186,12 @@
 		else await appMenuItemSelected('Chats');
 	}
 
+	let selectedRoomId;
 	function newMessageReceived(msg)
 	{
 		console.log(msg);
-		//appMenuItemSelected('Chats');
+		appMenuItemSelected('Chats');
+		selectedRoomId = msg.roomId;
 	}
 </script>
 
@@ -219,7 +221,8 @@
 			<div style="height: 120px"></div>
 			<ChatsPageView isActive={currentPage === 'Chats'}
 										 hubCoonection={hubCoonection}
-										 rooms={chatRooms}></ChatsPageView>
+										 rooms={chatRooms}
+										 roomId={selectedRoomId}></ChatsPageView>
 			<PeoplePageView isActive={currentPage === 'People'}
 											items={peopleList}
 											hubCoonection={hubCoonection}

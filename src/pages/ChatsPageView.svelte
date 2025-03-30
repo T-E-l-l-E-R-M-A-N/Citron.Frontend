@@ -4,11 +4,13 @@
     export let isActive;
     export let hubCoonection;
     export let rooms;
+    export let roomId;
 </script>
 
 {#if isActive}
     <MessagesSplitView hubConnection={hubCoonection}
-                       chatRooms={rooms}></MessagesSplitView>
+                       chatRooms={rooms}
+                       selectedRoomId={roomId}></MessagesSplitView>
 {/if}
 
 <style></style>

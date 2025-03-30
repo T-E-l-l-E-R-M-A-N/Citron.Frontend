@@ -43,7 +43,7 @@
         flex-direction: column;
     }
 
-    .rooms-list-item .selected {
+    .selected {
         background: orange;
         color: #fff;
     }

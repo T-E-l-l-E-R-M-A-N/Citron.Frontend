@@ -14,7 +14,7 @@
 
 	onMount(async () => {
 		const user = await getUserNameById(userId);
-		userName = user.name;
+		userName = user.screenName;
 	});
 </script>
 

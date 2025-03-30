@@ -2,14 +2,16 @@
 	import RoomsListItem from './RoomsListItem.svelte';
 	import TextField from './TextField.svelte';
 	import Button from './Button.svelte';
+	import { onMount } from 'svelte';
 
 	export let chatRooms = [];
-	export let selectedRoomId = -1;
+	export let selectedRoomId;
 	export let hubConnection;
 
 	let room;
 	let messages = [];
 	let text;
+
 
 	function selectRoom(id) {
 		selectedRoomId = id;
